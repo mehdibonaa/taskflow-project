@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="fr" class="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskFlow</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          mono: ['"DM Mono"', 'monospace'],
+          serif: ['Fraunces', 'serif'],
+        },
+        colors: {
+          stone: {
+            50:  '#F5F3EE',
+            100: '#EFEFEB',
+            200: '#D5D3CE',
+            300: '#B0AEA8',
+            400: '#9B9A96',
+            500: '#6B6A66',
+            600: '#4A4946',
+            700: '#2E2D2B',
+            800: '#1E1D1B',
+            900: '#141412',
+          },
+          emerald: {
+            50:  '#EAF6F0',
+            100: '#C3E9D8',
+            200: '#9FDCC0',
+            300: '#5DCAA5',
+            400: '#1D9E75',
+            500: '#0F6E56',
+            600: '#085041',
+            700: '#04342C',
+          },
+          amber: {
+            50:  '#FAEEDA',
+            100: '#FAC775',
+            200: '#EF9F27',
+            300: '#BA7517',
+            400: '#854F0B',
+          },
+          violet: {
+            50:  '#EEEDFE',
+            100: '#CECBF6',
+            200: '#AFA9EC',
+            300: '#7F77DD',
+            400: '#534AB7',
+            500: '#3C3489',
+          },
+          rose: {
+            50:  '#FCEBEB',
+            100: '#F7C1C1',
+            200: '#F09595',
+            300: '#E24B4A',
+            400: '#A32D2D',
+          },
+          teal: {
+            50:  '#E1F5EE',
+            100: '#9FE1CB',
+            200: '#5DCAA5',
+            300: '#1D9E75',
+            400: '#0F6E56',
+            500: '#085041',
+            600: '#04342C',
+          },
+          coral: {
+            50:  '#FAECE7',
+            100: '#F5C4B3',
+            200: '#F0997B',
+            300: '#D85A30',
+            400: '#993C1D',
+          },
+          pink: {
+            50:  '#FBEAF0',
+            100: '#F4C0D1',
+            200: '#ED93B1',
+            300: '#D4537E',
+            400: '#993556',
+          },
+        },
+        keyframes: {
+          slideIn: {
+            '0%':   { opacity: '0', transform: 'translateY(-6px)' },
+            '100%': { opacity: '1', transform: 'translateY(0)' },
+          },
+          fadeIn: {
+            '0%':   { opacity: '0' },
+            '100%': { opacity: '1' },
+          },
+          toastIn: {
+            '0%':   { opacity: '0', transform: 'translateY(60px)' },
+            '100%': { opacity: '1', transform: 'translateY(0)' },
+          },
+        },
+        animation: {
+          slideIn: 'slideIn 0.2s ease forwards',
+          fadeIn:  'fadeIn 0.2s ease forwards',
+          toastIn: 'toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards',
+        },
+        transitionDuration: { DEFAULT: '180ms' },
+      },
+    },
+  }
+</script>
+<style>
+  body { font-family: 'DM Mono', monospace; }
+  .font-serif { font-family: 'Fraunces', serif; }
+  /* Tailwind doesn't include arbitrary selectors for group-hover opacity — we handle that with JS toggle */
+  .task-card:hover .task-actions { opacity: 1; }
+  .task-actions { opacity: 0; transition: opacity 0.18s ease; }
+  /* Progress bar transition */
+  #progress-fill { transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
+  /* Modal transition */
+  .modal-backdrop { transition: opacity 0.2s ease; }
+  .modal-box { transition: transform 0.2s ease, opacity 0.2s ease; }
+  /* Select arrow */
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6A66' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px !important;
+  }
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 99px; }
+  .dark ::-webkit-scrollbar-thumb { background: #444; }
+</style>
+</head>
+<body class="bg-stone-50 dark:bg-stone-900 text-stone-900 dark:text-stone-50 min-h-screen transition-colors duration-200">
+ 
+<!-- ───── HEADER ───── -->
+<header class="bg-white dark:bg-stone-800 border-b border-black/10 dark:border-white/10 sticky top-0 z-50 backdrop-blur-md">
+  <div class="max-w-6xl mx-auto px-6 h-[60px] flex items-center justify-between gap-4">
+ 
+    <div class="font-serif text-[22px] font-bold tracking-tight flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
+      TaskFlow
+    </div>
+ 
+    <div class="flex items-center gap-2">
+      <!-- Dark mode toggle -->
+      <button onclick="toggleTheme()"
+        class="w-9 h-9 flex items-center justify-center rounded-lg border border-black/20 dark:border-white/20 bg-transparent hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+        title="Basculer le thème">
+        <!-- Sun -->
+        <svg id="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <!-- Moon -->
+        <svg id="moon-icon" class="hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+ 
+      <!-- New task -->
+      <button onclick="openModal()"
+        class="font-mono text-xs px-4 py-2 rounded-lg bg-stone-900 dark:bg-stone-50 text-stone-50 dark:text-stone-900 flex items-center gap-1.5 hover:opacity-80 transition-opacity whitespace-nowrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nouvelle tâche
+      </button>
+    </div>
+  </div>
+</header>
+ 
+<!-- ───── MAIN ───── -->
+<div class="max-w-6xl mx-auto px-6 py-7">
+ 
+  <!-- STAT CARDS -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-7">
+    <div class="bg-white dark:bg-stone-800 border border-black/10 dark:border-white/10 rounded-xl px-5 py-4 shadow-sm">
+      <p class="text-[11px] uppercase tracking-widest text-stone-400 mb-1">Total</p>
+      <p id="stat-total" class="font-serif text-[28px] font-bold leading-none text-stone-900 dark:text-stone-50">0</p>
+    </div>
+    <div class="bg-white dark:bg-stone-800 border border-black/10 dark:border-white/10 rounded-xl px-5 py-4 shadow-sm">
+      <p class="text-[11px] uppercase tracking-widest text-stone-400 mb-1">À faire</p>
+      <p id="stat-todo" class="font-serif text-[28px] font-bold leading-none text-amber-200">0</p>
+    </div>
+    <div class="bg-white dark:bg-stone-800 border border-black/10 dark:border-white/10 rounded-xl px-5 py-4 shadow-sm">
+      <p class="text-[11px] uppercase tracking-widest text-stone-400 mb-1">En cours</p>
+      <p id="stat-inprog" class="font-serif text-[28px] font-bold leading-none text-violet-300">0</p>
+    </div>
+    <div class="bg-white dark:bg-stone-800 border border-black/10 dark:border-white/10 rounded-xl px-5 py-4 shadow-sm">
+      <p class="text-[11px] uppercase tracking-widest text-stone-400 mb-1">Terminé</p>
+      <p id="stat-done" class="font-serif text-[28px] font-bold leading-none text-emerald-400">0</p>
+    </div>
+  </div>
+ 
+  <!-- PROGRESS BAR -->
+  <div class="flex items-center gap-3 mb-7">
+    <span class="text-[11px] text-stone-400 min-w-[72px]">Progression</span>
+    <div class="flex-1 h-1.5 bg-stone-100 dark:bg-stone-700 rounded-full overflow-hidden border border-black/10 dark:border-white/10">
+      <div id="progress-fill" class="h-full bg-emerald-400 rounded-full" style="width:0%"></div>
+    </div>
+    <span id="progress-pct" class="text-[11px] font-medium text-stone-500 dark:text-stone-400 min-w-[32px] text-right">0%</span>
+  </div>
+ 
+  <!-- FILTERS -->
+  <div class="flex items-center gap-2.5 mb-6 flex-wrap">
+    <!-- Priority pills -->
+    <div class="flex items-center gap-1.5 bg-white dark:bg-stone-800 border border-black/10 dark:border-white/10 rounded-lg p-1 shadow-sm">
+      <button class="filter-btn active text-[11px] px-2.5 py-1 rounded-md border-none bg-stone-900 dark:bg-stone-50 text-stone-50 dark:text-stone-900 cursor-pointer transition-colors font-mono" data-priority="all" onclick="filterPriority('all',this)">Toutes</button>
+      <button class="filter-btn text-[11px] px-2.5 py-1 rounded-md border-none bg-transparent text-stone-500 dark:text-stone-400 cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-700 hover:text-stone-900 dark:hover:text-stone-50 transition-colors font-mono" data-priority="high" onclick="filterPriority('high',this)">🔴 Haute</button>
+      <button class="filter-btn text-[11px] px-2.5 py-1 rounded-md border-none bg-transparent text-stone-500 dark:text-stone-400 cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-700 hover:text-stone-900 dark:hover:text-stone-50 transition-colors font-mono" data-priority="med" onclick="filterPriority('med',this)">🟡 Moyenne</button>
+      <button class="filter-btn text-[11px] px-2.5 py-1 rounded-md border-none bg-transparent text-stone-500 dark:text-stone-400 cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-700 hover:text-stone-900 dark:hover:text-stone-50 transition-colors font-mono" data-priority="low" onclick="filterPriority('low',this)">🟢 Basse</button>
+    </div>
+ 
+    <!-- Member filter -->
+    <select id="member-filter" onchange="renderBoard()"
+      class="font-mono text-[12px] px-3 py-2 rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-50 cursor-pointer shadow-sm outline-none focus:ring-2 focus:ring-emerald-400/30">
+    </select>
+  </div>
+ 
+  <!-- KANBAN BOARD -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+ 
+    <!-- TODO -->
+    <div class="bg-white dark:bg-stone-800 border border-black/10 dark:border-white/10 rounded-xl shadow-sm overflow-hidden">
+      <div class="px-4 py-3.5 border-b border-black/10 dark:border-white/10 flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-amber-200 flex-shrink-0"></span>
+        <span class="text-[12px] font-medium uppercase tracking-wider text-amber-300 flex-1">À faire</span>
+        <span id="count-todo" class="text-[11px] text-stone-400 bg-stone-100 dark:bg-stone-700 px-2 py-0.5 rounded-full">0</span>
+      </div>
+      <div id="col-todo" class="p-3 flex flex-col gap-2 min-h-[60px]"></div>
+    </div>
+ 
+    <!-- IN PROGRESS -->
+    <div class="bg-white dark:bg-stone-800 border border-black/10 dark:border-white/10 rounded-xl shadow-sm overflow-hidden">
+      <div class="px-4 py-3.5 border-b border-black/10 dark:border-white/10 flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-violet-300 flex-shrink-0"></span>
+        <span class="text-[12px] font-medium uppercase tracking-wider text-violet-400 flex-1">En cours</span>
+        <span id="count-inprog" class="text-[11px] text-stone-400 bg-stone-100 dark:bg-stone-700 px-2 py-0.5 rounded-full">0</span>
+      </div>
+      <div id="col-inprog" class="p-3 flex flex-col gap-2 min-h-[60px]"></div>
+    </div>
+ 
+    <!-- DONE -->
+    <div class="bg-white dark:bg-stone-800 border border-black/10 dark:border-white/10 rounded-xl shadow-sm overflow-hidden">
+      <div class="px-4 py-3.5 border-b border-black/10 dark:border-white/10 flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 flex-shrink-0"></span>
+        <span class="text-[12px] font-medium uppercase tracking-wider text-emerald-400 flex-1">Terminé</span>
+        <span id="count-done" class="text-[11px] text-stone-400 bg-stone-100 dark:bg-stone-700 px-2 py-0.5 rounded-full">0</span>
+      </div>
+      <div id="col-done" class="p-3 flex flex-col gap-2 min-h-[60px]"></div>
+    </div>
+ 
+  </div>
+</div>
+ 
+<!-- ───── MODAL ADD/EDIT ───── -->
+<div id="modal"
+  class="modal-backdrop fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] flex items-center justify-center p-5 opacity-0 pointer-events-none"
+  onclick="handleBackdropClick(event)">
+  <div class="modal-box bg-white dark:bg-stone-800 border border-black/20 dark:border-white/20 rounded-2xl w-full max-w-md shadow-2xl translate-y-3 opacity-0">
+ 
+    <div class="px-6 pt-5 pb-4 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
+      <h2 id="modal-title" class="font-serif text-[18px] font-bold">Nouvelle tâche</h2>
+      <button onclick="closeModal()"
+        class="w-8 h-8 flex items-center justify-center rounded-lg border border-black/20 dark:border-white/20 text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-700 text-lg transition-colors">×</button>
+    </div>
+ 
+    <div class="px-6 py-5 space-y-4">
+      <div>
+        <label class="block text-[11px] uppercase tracking-wider text-stone-400 mb-1.5">Titre *</label>
+        <input id="input-title" type="text" placeholder="Nom de la tâche…" maxlength="80"
+          class="font-mono text-[13px] w-full px-3 py-2.5 rounded-lg border border-black/20 dark:border-white/20 bg-stone-50 dark:bg-stone-900 text-stone-900 dark:text-stone-50 outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-colors placeholder:text-stone-400">
+      </div>
+      <div>
+        <label class="block text-[11px] uppercase tracking-wider text-stone-400 mb-1.5">Description</label>
+        <textarea id="input-desc" rows="2" placeholder="Détails optionnels…" maxlength="200"
+          class="font-mono text-[13px] w-full px-3 py-2.5 rounded-lg border border-black/20 dark:border-white/20 bg-stone-50 dark:bg-stone-900 text-stone-900 dark:text-stone-50 outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-colors placeholder:text-stone-400 resize-none"></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[11px] uppercase tracking-wider text-stone-400 mb-1.5">Statut</label>
+          <select id="input-status"
+            class="font-mono text-[13px] w-full px-3 py-2.5 rounded-lg border border-black/20 dark:border-white/20 bg-stone-50 dark:bg-stone-900 text-stone-900 dark:text-stone-50 outline-none focus:ring-2 focus:ring-emerald-400/30 cursor-pointer">
+            <option value="todo">À faire</option>
+            <option value="inprog">En cours</option>
+            <option value="done">Terminé</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] uppercase tracking-wider text-stone-400 mb-1.5">Priorité</label>
+          <select id="input-priority"
+            class="font-mono text-[13px] w-full px-3 py-2.5 rounded-lg border border-black/20 dark:border-white/20 bg-stone-50 dark:bg-stone-900 text-stone-900 dark:text-stone-50 outline-none focus:ring-2 focus:ring-emerald-400/30 cursor-pointer">
+            <option value="high">🔴 Haute</option>
+            <option value="med">🟡 Moyenne</option>
+            <option value="low">🟢 Basse</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="block text-[11px] uppercase tracking-wider text-stone-400 mb-1.5">Assigné à</label>
+        <select id="input-member"
+          class="font-mono text-[13px] w-full px-3 py-2.5 rounded-lg border border-black/20 dark:border-white/20 bg-stone-50 dark:bg-stone-900 text-stone-900 dark:text-stone-50 outline-none focus:ring-2 focus:ring-emerald-400/30 cursor-pointer">
+        </select>
+      </div>
+    </div>
+ 
+    <div class="px-6 pb-5 border-t border-black/10 dark:border-white/10 pt-4 flex gap-2 justify-end">
+      <button onclick="closeModal()"
+        class="font-mono text-[12px] px-4 py-2 rounded-lg border border-black/20 dark:border-white/20 bg-transparent hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors">
+        Annuler
+      </button>
+      <button id="modal-save-btn" onclick="saveTask()"
+        class="font-mono text-[12px] px-4 py-2 rounded-lg bg-stone-900 dark:bg-stone-50 text-stone-50 dark:text-stone-900 hover:opacity-80 transition-opacity">
+        Créer la tâche
+      </button>
+    </div>
+  </div>
+</div>
+ 
+<!-- ───── MODAL DELETE ───── -->
+<div id="modal-del"
+  class="modal-backdrop fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] flex items-center justify-center p-5 opacity-0 pointer-events-none"
+  onclick="handleDelBackdropClick(event)">
+  <div class="modal-box bg-white dark:bg-stone-800 border border-black/20 dark:border-white/20 rounded-2xl w-full max-w-md shadow-2xl translate-y-3 opacity-0">
+ 
+    <div class="px-6 pt-5 pb-4 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
+      <h2 class="font-serif text-[18px] font-bold">Supprimer la tâche</h2>
+      <button onclick="closeDelModal()"
+        class="w-8 h-8 flex items-center justify-center rounded-lg border border-black/20 dark:border-white/20 text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-700 text-lg transition-colors">×</button>
+    </div>
+ 
+    <div class="px-6 py-5">
+      <p class="text-[13px] text-stone-500 dark:text-stone-400 leading-relaxed">
+        Êtes-vous sûr de vouloir supprimer <strong id="del-task-name" class="text-stone-900 dark:text-stone-50"></strong> ? Cette action est irréversible.
+      </p>
+    </div>
+ 
+    <div class="px-6 pb-5 border-t border-black/10 dark:border-white/10 pt-4 flex gap-2 justify-end">
+      <button onclick="closeDelModal()"
+        class="font-mono text-[12px] px-4 py-2 rounded-lg border border-black/20 dark:border-white/20 bg-transparent hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors">
+        Annuler
+      </button>
+      <button onclick="confirmDelete()"
+        class="font-mono text-[12px] px-4 py-2 rounded-lg bg-rose-300 text-white hover:bg-rose-400 transition-colors">
+        Supprimer
+      </button>
+    </div>
+  </div>
+</div>
+ 
+<!-- ───── TOAST ───── -->
+<div id="notif"
+  class="fixed bottom-6 right-6 font-mono text-[12px] bg-stone-900 dark:bg-stone-50 text-stone-50 dark:text-stone-900 px-4 py-2.5 rounded-lg shadow-2xl z-[300] translate-y-14 opacity-0 pointer-events-none transition-all duration-300">
+</div>
+ 
+<script>
+const MEMBERS = [
+  { name: 'Mehdi',  initials: 'AM', tw: 'bg-violet-50  text-violet-400' },
+  { name: 'Mohammed',   initials: 'BL', tw: 'bg-teal-50    text-teal-500'   },
+  { name: 'Anass',  initials: 'CN', tw: 'bg-coral-50   text-coral-400'  },
+  { name: 'Oussama',   initials: 'DR', tw: 'bg-pink-50    text-pink-400'   },
+  { name: 'khalid',   initials: 'EC', tw: 'bg-emerald-50 text-emerald-500'},
+];
+ 
+// Fallback tw colors using inline hex for dark-mode safety
+const MEMBER_COLORS = [
+  { bg: '#EEEDFE', color: '#534AB7' },
+  { bg: '#E1F5EE', color: '#085041' },
+  { bg: '#FAECE7', color: '#993C1D' },
+  { bg: '#FBEAF0', color: '#993556' },
+  { bg: '#EAF6F0', color: '#0F6E56' },
+];
+ 
+let tasks = [
+  { id: 1, title: "Définir l'architecture back-end", desc: 'Choisir le framework et la structure BDD', status: 'done',   priority: 'high', member: 'Bruno Leroy'  },
+  { id: 2, title: 'Maquettes UI — dashboard',        desc: 'Wireframes basse fidélité + validation équipe',            status: 'done',   priority: 'high', member: 'Chloé Nguyen' },
+  { id: 3, title: 'Intégrer les maquettes',           desc: 'HTML / CSS / JS responsive',                               status: 'inprog', priority: 'high', member: 'Alice Martin' },
+  { id: 4, title: "Système d'authentification",       desc: 'Login / logout / gestion de session',                      status: 'inprog', priority: 'high', member: 'David Rossi'  },
+  { id: 5, title: 'Tests unitaires API',              desc: 'Couverture minimale 80%',                                  status: 'todo',   priority: 'med',  member: 'Bruno Leroy'  },
+  { id: 6, title: 'Rédiger la documentation',         desc: 'Guide développeur + README',                               status: 'todo',   priority: 'low',  member: 'Emma Chatel'  },
+  { id: 7, title: 'Optimisation performances',        desc: 'Profiling et cache Redis',                                  status: 'todo',   priority: 'med',  member: 'Alice Martin' },
+  { id: 8, title: 'Configuration CI/CD',              desc: 'Pipeline GitHub Actions + déploiement Vercel',             status: 'todo',   priority: 'low',  member: ''             },
+];
+ 
+let nextId = 100, editingId = null, deletingId = null, activeFilter = 'all';
+ 
+/* ── INIT ── */
+function init() {
+  populateMemberSelects();
+  renderBoard();
+}
+ 
+function populateMemberSelects() {
+  const inputSel  = document.getElementById('input-member');
+  const filterSel = document.getElementById('member-filter');
+  inputSel.innerHTML  = '<option value="">— Non assigné —</option>';
+  filterSel.innerHTML = '<option value="all">Tous les membres</option>';
+  MEMBERS.forEach(m => {
+    [inputSel, filterSel].forEach(sel => {
+      const opt = document.createElement('option');
+      opt.value = m.name; opt.textContent = m.name;
+      sel.appendChild(opt);
+    });
+  });
+}
+ 
+function getMemberInfo(name) { return MEMBERS.find(m => m.name === name) || null; }
+function getMemberIdx(name)  { return MEMBERS.findIndex(m => m.name === name); }
+ 
+/* ── FILTER ── */
+function filterPriority(val, el) {
+  activeFilter = val;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.remove('bg-stone-900','dark:bg-stone-50','text-stone-50','dark:text-stone-900');
+    b.classList.add('bg-transparent','text-stone-500','dark:text-stone-400');
+  });
+  el.classList.remove('bg-transparent','text-stone-500','dark:text-stone-400');
+  el.classList.add('bg-stone-900','dark:bg-stone-50','text-stone-50','dark:text-stone-900');
+  renderBoard();
+}
+ 
+function getFilteredTasks() {
+  const mf = document.getElementById('member-filter').value;
+  return tasks.filter(t =>
+    (activeFilter === 'all' || t.priority === activeFilter) &&
+    (mf === 'all' || t.member === mf)
+  );
+}
+ 
+/* ── RENDER ── */
+function renderBoard() {
+  const filtered = getFilteredTasks();
+  const cols = { todo: [], inprog: [], done: [] };
+  filtered.forEach(t => cols[t.status].push(t));
+ 
+  ['todo','inprog','done'].forEach(s => {
+    const el    = document.getElementById('col-' + s);
+    const count = document.getElementById('count-' + s);
+    count.textContent = cols[s].length;
+    el.innerHTML = cols[s].length
+      ? cols[s].map(renderTask).join('')
+      : '<p class="text-[11px] text-stone-400 text-center italic py-5">Aucune tâche</p>';
+  });
+ 
+  updateStats();
+}
+ 
+function priorityClasses(p) {
+  return {
+    high: 'bg-rose-50  text-rose-300',
+    med:  'bg-amber-50 text-amber-200',
+    low:  'bg-emerald-50 text-emerald-400',
+  }[p];
+}
+function priorityLabel(p) { return { high:'Haute', med:'Moyenne', low:'Basse' }[p]; }
+ 
+function renderTask(t) {
+  const mi  = getMemberIdx(t.member);
+  const mc  = mi >= 0 ? MEMBER_COLORS[mi] : null;
+  const m   = getMemberInfo(t.member);
+  const isDone = t.status === 'done';
+ 
+  const memberHtml = m && mc ? `
+    <div class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border border-black/10 dark:border-white/10 bg-stone-100 dark:bg-stone-700 text-stone-500 dark:text-stone-400">
+      <span class="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-medium flex-shrink-0"
+        style="background:${mc.bg};color:${mc.color}">${m.initials}</span>
+      ${m.name.split(' ')[0]}
+    </div>` : '';
+ 
+  return `
+    <div class="task-card bg-stone-50 dark:bg-stone-900 border border-black/10 dark:border-white/10 rounded-lg p-3 cursor-pointer hover:border-black/20 dark:hover:border-white/20 hover:shadow-md hover:-translate-y-px transition-all animate-slideIn">
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <p class="text-[13px] font-medium leading-snug flex-1 ${isDone ? 'line-through text-stone-400 dark:text-stone-500' : 'text-stone-900 dark:text-stone-50'}">${escHtml(t.title)}</p>
+        <div class="task-actions flex gap-1 flex-shrink-0">
+          <button class="w-6 h-6 flex items-center justify-center rounded bg-stone-100 dark:bg-stone-700 text-stone-500 hover:bg-stone-200 dark:hover:bg-stone-600 hover:text-stone-900 dark:hover:text-stone-50 transition-colors"
+            onclick="openModal(${t.id})" title="Modifier">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="w-6 h-6 flex items-center justify-center rounded bg-stone-100 dark:bg-stone-700 text-stone-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:text-rose-300 transition-colors"
+            onclick="openDelModal(${t.id})" title="Supprimer">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>
+      </div>
+      ${t.desc ? `<p class="text-[11px] text-stone-400 dark:text-stone-500 mt-1 mb-2 leading-relaxed line-clamp-2">${escHtml(t.desc)}</p>` : ''}
+      <div class="flex items-center gap-1.5 flex-wrap mt-2">
+        <span class="text-[10px] px-2 py-0.5 rounded-full font-medium uppercase tracking-wide ${priorityClasses(t.priority)}">${priorityLabel(t.priority)}</span>
+        ${memberHtml}
+      </div>
+    </div>`;
+}
+ 
+function updateStats() {
+  const all  = tasks;
+  const done = all.filter(t => t.status === 'done').length;
+  const pct  = all.length ? Math.round((done / all.length) * 100) : 0;
+  document.getElementById('stat-total').textContent  = all.length;
+  document.getElementById('stat-todo').textContent   = all.filter(t => t.status === 'todo').length;
+  document.getElementById('stat-inprog').textContent = all.filter(t => t.status === 'inprog').length;
+  document.getElementById('stat-done').textContent   = done;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent  = pct + '%';
+}
+ 
+/* ── MODAL ── */
+function openModal(id = null) {
+  editingId = id;
+  if (id) {
+    const t = tasks.find(x => x.id === id);
+    document.getElementById('modal-title').textContent    = 'Modifier la tâche';
+    document.getElementById('modal-save-btn').textContent = 'Enregistrer';
+    document.getElementById('input-title').value    = t.title;
+    document.getElementById('input-desc').value     = t.desc || '';
+    document.getElementById('input-status').value   = t.status;
+    document.getElementById('input-priority').value = t.priority;
+    document.getElementById('input-member').value   = t.member || '';
+  } else {
+    document.getElementById('modal-title').textContent    = 'Nouvelle tâche';
+    document.getElementById('modal-save-btn').textContent = 'Créer la tâche';
+    document.getElementById('input-title').value    = '';
+    document.getElementById('input-desc').value     = '';
+    document.getElementById('input-status').value   = 'todo';
+    document.getElementById('input-priority').value = 'med';
+    document.getElementById('input-member').value   = '';
+  }
+  showModal('modal');
+  setTimeout(() => document.getElementById('input-title').focus(), 120);
+}
+ 
+function closeModal()    { hideModal('modal'); editingId = null; }
+function openDelModal(id) {
+  deletingId = id;
+  const t = tasks.find(x => x.id === id);
+  document.getElementById('del-task-name').textContent = '"' + t.title + '"';
+  showModal('modal-del');
+}
+function closeDelModal() { hideModal('modal-del'); deletingId = null; }
+ 
+function showModal(id) {
+  const backdrop = document.getElementById(id);
+  const box      = backdrop.querySelector('.modal-box');
+  backdrop.classList.remove('opacity-0','pointer-events-none');
+  backdrop.classList.add('opacity-100');
+  box.classList.remove('translate-y-3','opacity-0');
+  box.classList.add('translate-y-0','opacity-100');
+}
+function hideModal(id) {
+  const backdrop = document.getElementById(id);
+  const box      = backdrop.querySelector('.modal-box');
+  backdrop.classList.remove('opacity-100');
+  backdrop.classList.add('opacity-0');
+  box.classList.remove('translate-y-0','opacity-100');
+  box.classList.add('translate-y-3','opacity-0');
+  setTimeout(() => backdrop.classList.add('pointer-events-none'), 200);
+}
+ 
+function handleBackdropClick(e)    { if (e.target.id === 'modal')     closeModal(); }
+function handleDelBackdropClick(e) { if (e.target.id === 'modal-del') closeDelModal(); }
+ 
+function saveTask() {
+  const titleEl = document.getElementById('input-title');
+  const title   = titleEl.value.trim();
+  if (!title) {
+    titleEl.focus();
+    titleEl.classList.add('border-rose-300');
+    setTimeout(() => titleEl.classList.remove('border-rose-300'), 1500);
+    return;
+  }
+  const data = {
+    title,
+    desc:     document.getElementById('input-desc').value.trim(),
+    status:   document.getElementById('input-status').value,
+    priority: document.getElementById('input-priority').value,
+    member:   document.getElementById('input-member').value,
+  };
+  if (editingId) {
+    const idx = tasks.findIndex(t => t.id === editingId);
+    tasks[idx] = { ...tasks[idx], ...data };
+    showNotif('Tâche modifiée ✓');
+  } else {
+    tasks.push({ id: nextId++, ...data });
+    showNotif('Tâche créée ✓');
+  }
+  closeModal();
+  renderBoard();
+}
+ 
+function confirmDelete() {
+  if (!deletingId) return;
+  tasks = tasks.filter(t => t.id !== deletingId);
+  closeDelModal();
+  renderBoard();
+  showNotif('Tâche supprimée');
+}
+ 
+/* ── TOAST ── */
+let notifTimer;
+function showNotif(msg) {
+  const el = document.getElementById('notif');
+  el.textContent = msg;
+  el.classList.remove('translate-y-14','opacity-0');
+  el.classList.add('translate-y-0','opacity-100');
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => {
+    el.classList.add('translate-y-14','opacity-0');
+    el.classList.remove('translate-y-0','opacity-100');
+  }, 2200);
+}
+ 
+/* ── DARK MODE ── */
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.classList.toggle('dark');
+  document.getElementById('sun-icon').classList.toggle('hidden', isDark);
+  document.getElementById('moon-icon').classList.toggle('hidden', !isDark);
+}
+ 
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+ 
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeDelModal(); }
+});
+ 
+init();
+</script>
+</body>
+</html>
