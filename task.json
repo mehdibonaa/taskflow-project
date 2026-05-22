@@ -1,0 +1,16 @@
+{
+  "task": [
+    {
+      "id": 1,
+      "title": "Create login page",
+      "status": "\u00c0 faire",
+      "assigned_to": "Mehdi"
+    }
+  ],
+  "members": [
+    "Personne 1",
+    "Personne 2",
+    "Personne 3",
+    "Personne 4"
+  ]
+}
