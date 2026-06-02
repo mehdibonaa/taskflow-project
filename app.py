@@ -53,6 +53,11 @@ def add_task():
     data = read_data()
     body = request.get_json()
 
+    if not body.get("title"):
+        return jsonify({
+            "error": "Title required"
+        }), 400
+
     new_id = max(
         [task["id"] for task in data["task"]],
         default=0
@@ -70,7 +75,7 @@ def add_task():
     write_data(data)
 
     return jsonify(new_task), 201
- 
+  
 # ----------------------------------
 # Update Task
 # ----------------------------------
@@ -156,10 +161,61 @@ def read_questions():
 
 
 # ----------------------------------
- 
+
 
 # ----------------------------------
+# ----------------------------------
+# Get Quiz Questions
+# ----------------------------------
+@app.route("/questions", methods=["GET"])
+def get_questions():
+    return jsonify(read_questions())
 
+# ----------------------------------
+# Submit Quiz & Calculate Score
+# ----------------------------------
+@app.route("/submit", methods=["POST"])
+def submit_quiz():
+
+    user_answers = request.get_json()
+
+    questions_data = read_questions()
+    questions = questions_data["questions"]
+
+    score = 0
+
+    for question in questions:
+
+        qid = str(question["id"])
+
+        if qid in user_answers:
+
+            if user_answers[qid] == question["answer"]:
+                score += 1
+
+    return jsonify({
+        "score": score,
+        "total": len(questions)
+    })
+    
+# ----------------------------------
+@app.route("/questions/<difficulty>")
+def get_questions_by_difficulty(difficulty):
+
+    data = read_questions()
+
+    filtered = [
+        q for q in data["questions"]
+        if q["difficulty"] == difficulty
+    ]
+
+    return jsonify(filtered) 
+# ----------------------------------
+@app.route("/api")     
+def api_status():   
+    return jsonify({
+        "message": "TaskFlow & CodeArena API Running"
+    })  
 # ----------------------------------
 # Run Server
 # ----------------------------------

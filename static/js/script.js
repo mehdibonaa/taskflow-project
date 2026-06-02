@@ -2,7 +2,10 @@ async function loadTasks() {
 
     const response = await fetch("/task");
     const data = await response.json();
-
+    if(!response.ok){
+    alert("Task title is required");
+    return;
+}
     const tasksDiv = document.getElementById("tasks");
 
     tasksDiv.innerHTML = "";
