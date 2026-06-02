@@ -1,106 +1,166 @@
-# Import Flask w les outils nécessaires
-# pyrefly: ignore [missing-import]
 from flask import Flask, jsonify, request, render_template
 import json
 
+app = Flask(__name__)
 
-# Créer l'application Flask
-app = Flask(__name__) 
-
-# Chemin vers le fichier JSON (base de données locale)
 TASKS_FILE = "task.json"
 
-# ─────────────────────────────────────────
-# FONCTION : Lire les données du fichier JSON
-# ─────────────────────────────────────────
+# ----------------------------------
+# Read JSON Data
+# ----------------------------------
 def read_data():
-    with open(TASKS_FILE, "r") as f:
+    with open(TASKS_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
-# ─────────────────────────────────────────
-# FONCTION : Sauvegarder les données dans JSON
-# ─────────────────────────────────────────
+# ----------------------------------
+# Write JSON Data
+# ----------------------------------
 def write_data(data):
-    with open(TASKS_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+    with open(TASKS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
-# ─────────────────────────────────────────
-# ROUTE : Page principale
-# ─────────────────────────────────────────
+# ----------------------------------
+# Home Page
+# ----------------------------------
 @app.route("/")
 def index():
     return render_template("index.html")
 
-# ─────────────────────────────────────────
-# ROUTE : Récupérer toutes les tâches (GET)
-# ─────────────────────────────────────────
+# ----------------------------------
+# Dashboard
+# ----------------------------------
+@app.route("/dashboard")
+def dashboard():
+    data = read_data()
+    return render_template(
+        "dashboard.html",
+        tasks=data["task"]
+    )
+
+# ----------------------------------
+# Get All Tasks
+# ----------------------------------
 @app.route("/task", methods=["GET"])
 def get_tasks():
     data = read_data()
     return jsonify(data)
 
-# ─────────────────────────────────────────
-# ROUTE : Ajouter une tâche (POST)
-# ─────────────────────────────────────────
-@app.route("/task", methods=["POST"])
-def add_task():
-    data = read_data()
-    body = request.get_json()
+# ----------------------------------
+# Add Task
+# ----------------------------------
+@app.route("/submit", methods=["POST"])
+def submit_quiz():
 
-    # Créer la nouvelle tâche avec un ID unique
-    new_task = {
-        "id": len(data["task"]) + 1,
-        "title": body["title"],
-        "status": "À faire",
-        "assigned_to": body.get("assigned_to", "")
-    }
+    user_answers = request.get_json()
 
-    # Ajouter la tâche à la liste
-    data["task"].append(new_task)
-    write_data(data)
+    questions = read_questions()["questions"]
 
-    return jsonify(new_task), 201
+    score = 0
 
-# ─────────────────────────────────────────
-# ROUTE : Modifier une tâche (PUT)
-# ─────────────────────────────────────────
+    for q in questions:
+
+        qid = str(q["id"])
+
+        if qid in user_answers:
+
+            if user_answers[qid] == q["answer"]:
+                score += 1
+
+    return jsonify({
+        "score": score,
+        "total": len(questions)
+    })
+
+# ----------------------------------
+# Update Task
+# ----------------------------------
 @app.route("/task/<int:task_id>", methods=["PUT"])
 def update_task(task_id):
+
     data = read_data()
     body = request.get_json()
 
-    # Chercher la tâche par ID
+    allowed_status = [
+        "À faire",
+        "En cours",
+        "Terminé"
+    ]
+
     for task in data["task"]:
+
         if task["id"] == task_id:
-            # Mettre à jour les champs
-            task["title"] = body.get("title", task["title"])
-            task["status"] = body.get("status", task["status"])
-            task["assigned_to"] = body.get("assigned_to", task["assigned_to"])
+
+            if "title" in body:
+                task["title"] = body["title"]
+
+            if "assigned_to" in body:
+                task["assigned_to"] = body["assigned_to"]
+
+            if "status" in body:
+
+                if body["status"] not in allowed_status:
+                    return jsonify({
+                        "error": "Invalid status"
+                    }), 400
+
+                task["status"] = body["status"]
+
             write_data(data)
+
             return jsonify(task)
 
-    return jsonify({"error": "Tâche introuvable"}), 404
+    return jsonify({
+        "error": "Task not found"
+    }), 404
 
-# ─────────────────────────────────────────
-# ROUTE : Supprimer une tâche (DELETE)
-# ─────────────────────────────────────────
+# ----------------------------------
+# Delete Task
+# ----------------------------------
 @app.route("/task/<int:task_id>", methods=["DELETE"])
 def delete_task(task_id):
     data = read_data()
 
-    # Filtrer — garder toutes les tâches sauf celle à supprimer
     original_length = len(data["task"])
-    data["task"] = [t for t in data["task"] if t["id"] != task_id]
 
-    # Vérifier si la tâche existait
+    data["task"] = [
+        task for task in data["task"]
+        if task["id"] != task_id
+    ]
+
     if len(data["task"]) == original_length:
-        return jsonify({"error": "Tâche introuvable"}), 404
+        return jsonify({
+            "error": "Task not found"
+        }), 404
 
     write_data(data)
-    return jsonify({"message": "Tâche supprimée"})
 
-# ─────────────────────────────────────────
-# Lancer le serveur
-# ─────────────────────────────────────────
+    return jsonify({
+        "message": "Task deleted successfully"
+    }) 
+
+# ----------------------------------
+# Quiz Page (CodeArena)
+# ----------------------------------
+@app.route("/quiz")
+def quiz():
+    return render_template("quiz.html")
+
+# ----------------------------------
+# Read Quiz Questions
+
+QUESTIONS_FILE = "questions.json"
+
+def read_questions():
+    with open(QUESTIONS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+# ----------------------------------
+@app.route("/questions", methods=["GET"])
+def get_questions():
+    return jsonify(read_questions()) 
+# ----------------------------------
+# Run Server
+# ----------------------------------
 if __name__ == "__main__":
-    app.run(debug=True)    
+    app.run(debug=True) 
