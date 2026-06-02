@@ -1,26 +1,14 @@
 {
   "task": [
     {
-      "id": 2,
-      "title": "Create login page",
-      "status": "À faire",
-      "assigned_to": "Mehdi"
-    },
-    {
-      "id": 4,
+      "id": 7,
       "title": "mehdi",
       "status": "À faire",
       "assigned_to": ""
     },
     {
-      "id": 5,
-      "title": "mehdi",
-      "status": "À faire",
-      "assigned_to": "gg"
-    },
-    {
-      "id": 7,
-      "title": "mehdi",
+      "id": 8,
+      "title": "2",
       "status": "À faire",
       "assigned_to": ""
     }

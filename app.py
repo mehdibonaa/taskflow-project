@@ -48,29 +48,29 @@ def get_tasks():
 # ----------------------------------
 # Add Task
 # ----------------------------------
-@app.route("/submit", methods=["POST"])
-def submit_quiz():
+@app.route("/task", methods=["POST"])
+def add_task():
+    data = read_data()
+    body = request.get_json()
 
-    user_answers = request.get_json()
+    new_id = max(
+        [task["id"] for task in data["task"]],
+        default=0
+    ) + 1
 
-    questions = read_questions()["questions"]
+    new_task = {
+        "id": new_id,
+        "title": body["title"],
+        "status": "À faire",
+        "assigned_to": body.get("assigned_to", "")
+    }
 
-    score = 0
+    data["task"].append(new_task)
 
-    for q in questions:
+    write_data(data)
 
-        qid = str(q["id"])
-
-        if qid in user_answers:
-
-            if user_answers[qid] == q["answer"]:
-                score += 1
-
-    return jsonify({
-        "score": score,
-        "total": len(questions)
-    })
-
+    return jsonify(new_task), 201
+ 
 # ----------------------------------
 # Update Task
 # ----------------------------------
@@ -143,7 +143,7 @@ def delete_task(task_id):
 # ----------------------------------
 @app.route("/quiz")
 def quiz():
-    return render_template("quiz.html")
+    return render_template("quize.html")
 
 # ----------------------------------
 # Read Quiz Questions
@@ -156,9 +156,10 @@ def read_questions():
 
 
 # ----------------------------------
-@app.route("/questions", methods=["GET"])
-def get_questions():
-    return jsonify(read_questions()) 
+ 
+
+# ----------------------------------
+
 # ----------------------------------
 # Run Server
 # ----------------------------------
