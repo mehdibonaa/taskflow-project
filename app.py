@@ -22,9 +22,10 @@ def write_data(data):
 # ----------------------------------
 # Home Page
 # ----------------------------------
+
 @app.route("/")
-def index():
-    return render_template("index.html")
+def home():
+    return render_template("login.html")
 
 # ----------------------------------
 # Dashboard
@@ -35,7 +36,10 @@ def dashboard():
     return render_template(
         "dashboard.html",
         tasks=data["task"]
-    )
+    ) 
+    
+
+
 
 # ----------------------------------
 # Get All Tasks
@@ -168,9 +172,7 @@ def read_users():
         return json.load(f)
 
 # ----------------------------------
-@app.route("/login-page")
-def login_page():
-    return render_template("login.html")
+
 # ----------------------------------
 @app.route("/login", methods=["POST"])
 def login():
@@ -249,6 +251,23 @@ def api_status():
         "message": "TaskFlow & CodeArena API Running"
     })  
 # ----------------------------------
+
+#----------------------------------
+@app.route("/mytasks")
+def mytasks():
+    data = read_data()
+    return render_template(
+        "index.html",
+        tasks=data["task"]
+    )
+# ----------------------------------
+
+@app.route("/forgot-password")
+def forgot_password():
+    return render_template("forgot.html") 
+# ----------------------------------
+
+
 # Run Server
 # ----------------------------------
 if __name__ == "__main__":

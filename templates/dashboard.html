@@ -1,27 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Dashboard</title>
-</head>
-<body>
-
 <h1>Dashboard</h1>
 
-{% for task in tasks %}
+<button onclick="window.location.href='/mytasks'">
+    My Tasks
+</button>
 
-<div>
+<button onclick="window.location.href='/quiz'">
+    CodeArena
+</button>
 
-    <h3>{{ task.title }}</h3>
-
-    <p>{{ task.status }}</p>
-
-    <p>{{ task.assigned_to }}</p>
-
-</div>
-
-<hr>
-
-{% endfor %}
-
-</body>
-</html> 
+<button onclick="window.location.href='/members'">
+    Members
+</button>
