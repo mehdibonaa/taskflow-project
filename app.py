@@ -161,10 +161,42 @@ def read_questions():
 
 
 # ----------------------------------
+USERS_FILE = "users.json"
 
+def read_users():
+    with open(USERS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 # ----------------------------------
+@app.route("/login-page")
+def login_page():
+    return render_template("login.html")
 # ----------------------------------
+@app.route("/login", methods=["POST"])
+def login():
+
+    body = request.get_json()
+
+    username = body.get("username")
+    password = body.get("password")
+
+    users = read_users()["users"]
+
+    for user in users:
+        if (
+            user["username"] == username and
+            user["password"] == password
+        ):
+            return jsonify({
+                "success": True,
+                "message": "Login successful"
+            })
+
+    return jsonify({
+        "success": False,
+        "message": "Invalid username or password"
+    }), 401
+#----------------------------------
 # Get Quiz Questions
 # ----------------------------------
 @app.route("/questions", methods=["GET"])
