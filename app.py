@@ -68,11 +68,12 @@ def add_task():
     ) + 1
 
     new_task = {
-        "id": new_id,
-        "title": body["title"],
-        "status": "À faire",
-        "assigned_to": body.get("assigned_to", "")
-    }
+    "id": new_id,
+    "title": body["title"],
+    "description": body.get("description", ""),
+    "status": "À faire",
+    "assigned_to": body.get("assigned_to", "")
+}
 
     data["task"].append(new_task)
 
@@ -113,6 +114,8 @@ def update_task(task_id):
                     }), 400
 
                 task["status"] = body["status"]
+            if "description" in body:
+                 task["description"] = body["description"]
 
             write_data(data)
 
