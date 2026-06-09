@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CodeArena</title>
+</head>
+<body>
+
+    <h1>CodeArena Quiz</h1>
+
+    <h2 id="timer">
+        Time Left: 30s
+    </h2>
+
+    <div id="quiz"></div>
+
+    <button onclick="submitQuiz()">
+        Submit Quiz 
+    </button>
+
+    <h2 id="result"></h2>
+
+    <script src="{{ url_for('static', filename='js/quize.js') }}"></script>
+
+</body>
+</html> 

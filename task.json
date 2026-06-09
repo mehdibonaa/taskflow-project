@@ -1,0 +1,22 @@
+{
+  "task": [
+    {
+      "id": 7,
+      "title": "mehdi",
+      "status": "À faire",
+      "assigned_to": ""
+    },
+    {
+      "id": 9,
+      "title": "mehdi ",
+      "status": "À faire",
+      "assigned_to": ""
+    }
+  ],
+  "members": [
+    "Personne 1",
+    "Personne 2",
+    "Personne 3",
+    "Personne 4"
+  ]
+}

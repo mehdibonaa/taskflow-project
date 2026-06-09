@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TaskFlow</title>
+</head>
+<body>
+
+    <h1>TaskFlow</h1>
+
+    <form id="taskForm">
+        <input type="text" id="title" placeholder="Task title" required>
+
+        <input type="text" id="assigned_to" placeholder="Assigned to">
+
+        <button type="submit">
+            Add Task
+        </button>
+    </form>
+
+    <hr>
+    <a href="/quiz">
+    Go To CodeArena
+</a>
+
+    <div id="tasks"></div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>
