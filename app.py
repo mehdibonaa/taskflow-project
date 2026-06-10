@@ -201,6 +201,43 @@ def login():
         "success": False,
         "message": "Invalid username or password"
     }), 401
+    
+#
+@app.route("/forgot-password-page")
+def forgot_password_page():
+    return render_template("forgot_password.html")
+
+    
+#foregt password
+@app.route("/forgot-password", methods=["POST"])
+def forgot_password():
+
+    body = request.get_json()
+
+    username = body.get("username")
+    new_password = body.get("new_password")
+
+    with open("users.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    for user in data["users"]:
+
+        if user["username"] == username:
+
+            user["password"] = new_password
+
+            with open("users.json", "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+
+            return jsonify({
+                "message": "Password updated successfully"
+            })
+
+    return jsonify({
+        "error": "User not found"
+    }), 404
+
+ 
 #----------------------------------
 # Get Quiz Questions
 # ----------------------------------
@@ -263,11 +300,9 @@ def mytasks():
         "index.html",
         tasks=data["task"]
     )
-# ----------------------------------
 
-@app.route("/forgot-password")
-def forgot_password():
-    return render_template("forgot.html") 
+
+
 # stats--  ------------------------------
 @app.route("/stats")
 def stats():
