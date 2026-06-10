@@ -268,7 +268,52 @@ def mytasks():
 @app.route("/forgot-password")
 def forgot_password():
     return render_template("forgot.html") 
-# ----------------------------------
+# stats--  ------------------------------
+@app.route("/stats")
+def stats():
+
+    data = read_data()
+
+    total = len(data["task"])
+
+    completed = len([
+        t for t in data["task"]
+        if t["status"] == "Terminé"
+    ])
+
+    progress = len([
+        t for t in data["task"]
+        if t["status"] == "En cours"
+    ])
+
+    return jsonify({
+        "total": total,
+        "completed": completed,
+        "progress": progress
+    })
+
+#--------------------------------
+# Get Members
+@app.route("/members")
+def get_members():
+    with open("users.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    return jsonify(data)
+#serch members
+@app.route("/search")
+def search_task():
+
+    title = request.args.get("title", "")
+
+    data = read_data()
+
+    result = [
+        task for task in data["task"]
+        if title.lower() in task["title"].lower()
+    ]
+
+    return jsonify(result) 
 
 
 # Run Server

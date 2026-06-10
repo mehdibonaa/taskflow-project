@@ -203,3 +203,5 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeTaskModal();});
 
 goTo('dashboard');
+
+fetch("/task")
