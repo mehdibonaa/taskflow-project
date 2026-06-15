@@ -1,32 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Login</title>
+    <title>TaskFlow — Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
-
-<h1>Admin Login</h1>
-
-<input type="text" id="username" placeholder="Username">
-
-<input type="password" id="password" placeholder="Password">
-
-<button onclick="login()">
-    Login
-</button>
-
-<p id="result"></p>
-
-<p>
-    Forgot your password?
-    <a href="/forgot-password-page">
-        Reset Password
-    </a>
-</p> 
-
-
-
+<div class="login-container">
+    <h1>TaskFlow</h1>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="result"></p>
+    <p>Forgot your password? <a href="/forgot-password-page">Reset Password</a></p>
+</div>
 <script src="{{ url_for('static', filename='js/login.js') }}"></script>
-
 </body>
 </html>

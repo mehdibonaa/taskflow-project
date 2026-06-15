@@ -19,9 +19,21 @@
       "question": "A Python list is immutable?",
       "options": ["True", "False"],
       "answer": "False",
-      "difficulty": "medium"
+      "difficulty": "easy"
+    },
+    {
+      "id": 4,
+      "question": "Which symbol is used for comments in Python?",
+      "options": ["//", "#", "/*", "--"],
+      "answer": "#",
+      "difficulty": "easy"
+    },
+    {
+      "id": 5,
+      "question": "What is the correct way to create a variable in Python?",
+      "options": ["int x = 5", "x = 5", "var x = 5", "create x = 5"],
+      "answer": "x = 5",
+      "difficulty": "easy"
     }
-
-    
   ]
-} 
+}

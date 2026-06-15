@@ -2,24 +2,17 @@
 <html>
 <head>
     <title>CodeArena</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
-
+<div class="quiz-container">
     <h1>CodeArena Quiz</h1>
-
-    <h2 id="timer">
-        Time Left: 30s
-    </h2>
-
-    <div id="quiz"></div>
-
-    <button onclick="submitQuiz()">
-        Submit Quiz 
-    </button>
-
-    <h2 id="result"></h2>
-
-    <script src="{{ url_for('static', filename='js/quize.js') }}"></script>
-
+    <h2 id="timer"></h2>
+    <button id="startBtn" onclick="startQuiz()">Start Quiz</button>
+    <div id="quiz" style="display:none;"></div>
+    <button id="submitBtn" onclick="submitQuiz()" style="display:none;">Submit Quiz</button>
+    <h2 id="result" style="display:none;"></h2>
+</div>
+<script src="{{ url_for('static', filename='js/quize.js') }}"></script>
 </body>
-</html> 
+</html>

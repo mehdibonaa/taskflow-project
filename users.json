@@ -3,9 +3,14 @@
     {
       "username": "admin",
       "password": "pfa123"
+    },
+    {
+      "username": "lalo",
+      "password": "pfa123",
+      "name": "lalo",
+      "role": "lalo",
+      "department": "Engineering",
+      "status": "active"
     }
   ]
-
-
 }
-

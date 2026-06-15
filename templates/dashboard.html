@@ -1,13 +1,40 @@
-<h1>Dashboard</h1>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TaskFlow — Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
 
-<button onclick="window.location.href='/mytasks'">
-    My Tasks
-</button>
+<div class="dashboard-wrapper">
+    <div class="dashboard-header">
+        <h1>TaskFlow</h1>
+        <p>Welcome back 👋 What are we doing today?</p>
+    </div>
 
-<button onclick="window.location.href='/quiz'">
-    CodeArena
-</button>
+    <div class="dashboard-cards">
+        <div class="card card-tasks" onclick="window.location.href='/app'">
+            <div class="card-icon">📋</div>
+            <h2>My Tasks</h2>
+            <p>Manage and track your daily tasks</p>
+            <span class="card-btn">Open →</span>
+        </div>
 
-<button onclick="window.location.href='/members'">
-    Members
-</button>
+        <div class="card card-arena" onclick="window.location.href='/quiz'">
+            <div class="card-icon">⚔️</div>
+            <h2>CodeArena</h2>
+            <p>Challenge yourself with Python quizzes</p>
+            <span class="card-btn">Play →</span>
+        </div>
+
+        <div class="card card-members" onclick="window.location.href='/app'">
+            <div class="card-icon">👥</div>
+            <h2>Members</h2>
+            <p>View your team members</p>
+            <span class="card-btn">View →</span>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
